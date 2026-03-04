@@ -7,38 +7,35 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         
-        /* 레이아웃 초기화 */
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 10px; margin: 0; }
         .container { background: white; padding: 30px 20px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); width: 100%; max-width: 440px; text-align: center; border-top: 6px solid #1A237E; box-sizing: border-box; }
         .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
         
-        /* 입력창 100% 확장 */
+        /* 입력창 디자인 */
         label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 10px; }
         input[type="text"], input[type="tel"], select, textarea { 
             width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; 
             font-size: 16px !important; box-sizing: border-box !important; background: #FAFAFA !important; display: block !important; margin-bottom: 10px;
         }
 
-        /* [해결] image_f4b5ae.png 번호 그리드 가로 정렬 */
+        /* 번호 그리드 가로 정렬 */
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
         .bubble.selected { background: #1A237E; color: white; font-weight: bold; transform: scale(1.1); }
 
-        /* [해결] image_d72e29.png 개인정보 동의 칸 디자인 복구 */
+        /* [수정] image_d72e29.png 개인정보 체크박스 정렬 */
         .privacy-row { display: flex !important; align-items: center !important; gap: 12px !important; margin: 20px 0 !important; cursor: pointer; }
         .privacy-row input[type="checkbox"] { width: 24px !important; height: 24px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
         .privacy-row span { font-size: 15px; font-weight: bold; color: #1A237E; }
         .privacy-content { font-size: 11px; color: #777; text-align: left; height: 80px; overflow-y: auto; background: #f9f9f9; padding: 12px; border-radius: 12px; line-height: 1.6; }
 
         #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; }
-        #check-result-btn { width: 100%; margin-top: 10px; padding: 15px; background: white; border: 1.5px solid #1A237E; color: #1A237E; border-radius: 15px; font-weight: bold; cursor: pointer; }
+        #check-btn { width: 100%; margin-top: 10px; padding: 15px; background: white; border: 1.5px solid #1A237E; color: #1A237E; border-radius: 15px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="font-family: 'Playfair Display'; color: #1A237E; margin-bottom: 5px;">Studio Yuyeon</h1>
-        <p style="font-size: 13px; color: #888; margin-bottom: 30px;">당신의 유연한 인연을 찾아가는 시간</p>
-        
+        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Studio Yuyeon</h1>
         <form id="matching-form">
             <div class="card">
                 <label>성별</label><select id="user-gender"><option value="male">남성</option><option value="female">여성</option></select>
@@ -57,13 +54,13 @@
             <div class="privacy-content">행사 종료 및 결과 안내 즉시 모든 데이터는 파기됩니다.</div>
 
             <button type="submit" id="submit-btn" style="margin-top:20px;">정보 제출하기</button>
-            <button type="button" id="check-result-btn">결과 확인하기</button>
+            <button type="button" id="check-btn">결과 확인하기</button>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { 
             apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", 
@@ -76,7 +73,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 그리드 생성
+        // 그리드 생성 로직
         const makeGrid = (id, targetId) => {
             const grid = document.getElementById(id); const picks = [];
             for(let i=1; i<=12; i++) {
@@ -96,23 +93,29 @@
         };
         const selectedPicks = makeGrid('pick-id-grid'); makeGrid('my-id-grid', 'user-id');
 
-        // 제출 로직
+        // [핵심] 제출 방지 강화 로직
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.innerText = "상태 확인 중...";
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "상태 확인 중...";
 
             try {
-                // [핵심] image_d7179e.png의 settings 값을 실시간 체크
+                // 파이어베이스에서 settings/matching_status 문서를 직접 가져옵니다.
                 const snap = await getDoc(doc(db, "settings", "matching_status"));
                 const isClosed = snap.exists() ? snap.data().is_open : false;
 
+                // 마감 상태(is_open: true)라면 제출을 여기서 중단합니다.
                 if (isClosed === true) {
-                    alert("🛑 접수가 마감되었습니다. 결과 확인을 이용해 주세요.");
-                    btn.disabled = false; btn.innerText = "정보 제출하기"; return;
+                    alert("🛑 죄송합니다. 현재 기수 접수가 마감되었습니다.");
+                    btn.disabled = false;
+                    btn.innerText = "정보 제출하기";
+                    return; 
                 }
 
+                // 접수가 가능할 때만 아래 코드가 실행됩니다.
                 if (!document.getElementById('privacy-check').checked) { alert("동의 필요!"); btn.disabled = false; return; }
-                if (!document.getElementById('user-id').value) { alert("번호 선택!"); btn.disabled = false; return; }
+                if (!document.getElementById('user-id').value) { alert("본인 번호 선택!"); btn.disabled = false; return; }
 
                 await addDoc(collection(db, "participants"), {
                     gender: document.getElementById('user-gender').value,
@@ -124,16 +127,18 @@
                     review: document.getElementById('user-review').value,
                     createdAt: new Date()
                 });
-                alert("✅ 제출 성공! 소중한 인연이 닿기를 바랍니다.");
+                alert("✅ 제출 성공!");
                 btn.innerText = "제출 완료";
-            } catch (err) { alert("오류 발생!"); btn.disabled = false; }
+            } catch (err) {
+                alert("오류 발생! 다시 시도해주세요.");
+                btn.disabled = false;
+            }
         };
 
-        // 결과 확인
-        document.getElementById('check-result-btn').onclick = async () => {
+        document.getElementById('check-btn').onclick = async () => {
             const snap = await getDoc(doc(db, "settings", "matching_status"));
             if (!snap.exists() || !snap.data().is_open) return alert("결과 공개 전입니다!");
-            alert("결과 페이지로 이동하거나 데이터를 불러옵니다.");
+            alert("결과 확인 기능을 준비 중입니다.");
         };
     </script>
 </body>
