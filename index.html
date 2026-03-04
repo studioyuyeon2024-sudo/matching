@@ -146,3 +146,27 @@
         document.getElementById('check-result-btn').onclick = async () => {
             const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
             if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("결과 공개 전입니다!");
+            const snap = await getDocs(collection(db, "participants"));
+            const data = []; snap.forEach(d => data.push(d.data()));
+            const myId = Number(userIdInput.value);
+            const opposites = data.filter(p => p.gender !== document.getElementById('user-gender').value);
+            const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
+            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
+            
+            document.getElementById('input-section').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+            const list = document.getElementById('match-list-area');
+            list.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">받은 호감: <b>${votes}표</b></div>`;
+            if (matched.length > 0) matched.forEach(p => list.innerHTML += `<div style='background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold;'>💖 ${p.myId}번(${p.realName})님과 매칭!</div>`);
+            else list.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>매칭되지 않았습니다.</div>`;
+        };
+
+        document.getElementById('skip-btn').onclick = () => {
+            const isSkip = document.getElementById('is-skipping').value === "false";
+            document.getElementById('is-skipping').value = isSkip ? "true" : "false";
+            document.getElementById('skip-btn').classList.toggle('active', isSkip);
+            if(isSkip) { selectedPicks = []; updatePickView(); }
+        };
+    </script>
+</body>
+</html>
