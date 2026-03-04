@@ -3,76 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yuyeon Admin | 대시보드</title>
+    <title>Studio Yuyeon Admin | 🔐</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; padding: 20px; }
-        .admin-container { max-width: 950px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 6px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; padding: 20px; margin: 0; }
+        .admin-container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 6px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
         /* 벤토 그리드 */
         .bento-grid { display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
         .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; }
         .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
-        .main-val { font-size: 32px; font-weight: bold; color: #1A237E; margin: 10px 0; }
+        .main-val { font-size: 36px; font-weight: bold; color: #1A237E; margin: 10px 0; }
 
-        .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        button { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        /* 제어판 버튼 */
+        .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+        button { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        .btn-purple { background: #9b59b6; } 
+        .btn-dark { background: #34495e; }   
+        .btn-orange { background: #f39c12; } 
+        .btn-red { background: #e74c3c; }    
+        .btn-green { background: #27ae60; grid-column: span 2; }
+
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 20px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th, td { padding: 15px; border: 1px solid #f9f9f9; font-size: 13px; text-align: center; }
         th { background: #1A237E; color: white; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <h1 style="font-family: 'Playfair Display'; text-align: center;">Studio Yuyeon Admin</h1>
+        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Admin</h1>
+        
         <div class="bento-grid">
             <div class="bento-card card-large">
-                <h4>매칭 커플 💖</h4>
+                <h4>실시간 매칭 성공 💖</h4>
                 <p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p>
-                <div id="match-summary" style="font-size: 13px; color: #666; text-align: left; margin-top:15px;"></div>
+                <div id="match-summary" style="font-size: 13px; color: #666; text-align: left; line-height: 1.8;"></div>
             </div>
-            <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;"><h4>매칭률 📊</h4><p id="stat-rate" class="main-val">0%</p></div>
-            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>총 참가자</h4><p id="stat-total" class="main-val">0</p></div>
-            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
+            <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;">
+                <h4>종합 매칭률 📊</h4>
+                <p id="stat-rate" class="main-val">0%</p>
+            </div>
+            <div class="bento-card" style="border-top: 5px solid #27ae60;">
+                <h4>총 참가자</h4>
+                <p id="stat-total" class="main-val">0명</p>
+            </div>
+            <div class="bento-card" style="border-top: 5px solid #f39c12;">
+                <h4>성비 (남/여)</h4>
+                <p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p>
+            </div>
         </div>
+
         <div class="control-panel">
-            <button id="open-btn" style="background:#9b59b6;">🔓 결과 공개</button>
-            <button id="close-btn" style="background:#34495e;">🔒 공개 차단</button>
-            <button id="refresh-btn" style="background:#27ae60; grid-column: span 2;">🔄 데이터 새로고침</button>
+            <button id="open-btn" class="btn-purple">🔓 결과 공개 (접수 마감)</button>
+            <button id="close-btn" class="btn-dark">🔒 결과 차단 (접수 재개)</button>
+            <button id="download-btn" class="btn-orange">📥 현재 명단 백업 (CSV)</button>
+            <button id="delete-btn" class="btn-red">⚠️ 기수 데이터 초기화</button>
+            <button id="refresh-btn" class="btn-green">🔄 실시간 데이터 새로고침</button>
         </div>
-        <div style="overflow-x: auto;">
+
+        <div class="table-wrapper">
             <table>
-                <thead><tr><th>#</th><th>성별</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th>후기</th></tr></thead>
+                <thead>
+                    <tr><th>#</th><th>성별</th><th>이름</th><th>연락처</th><th>선택</th><th style="color:#FF5252;">득표 🔥</th><th>후기</th></tr>
+                </thead>
                 <tbody id="list-body"></tbody>
             </table>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
+        import { getFirestore, collection, getDocs, deleteDoc, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
+            authDomain: "my-dating-service.firebaseapp.com",
+            projectId: "my-dating-service",
+            storageBucket: "my-dating-service.firebasestorage.app",
+            messagingSenderId: "231488184905",
+            appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let currentData = [];
 
         async function updateDashboard() {
             const snap = await getDocs(collection(db, "participants"));
-            const data = []; snap.forEach(d => data.push(d.data()));
+            currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
             
             const voteMap = {};
-            data.forEach(p => { 
+            currentData.forEach(p => { 
                 if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
                 if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
             });
 
             const listBody = document.getElementById('list-body');
             listBody.innerHTML = "";
-            data.sort((a,b)=>a.myId - b.myId).forEach(p => {
-                listBody.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${p.pickId1},${p.pickId2}</td><td><b>${voteMap[p.myId]||0}</b></td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
+            currentData.sort((a,b)=>a.myId - b.myId).forEach(p => {
+                listBody.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${p.pickId1||'-'},${p.pickId2||'-'}</td><td style="font-weight:bold; color:#FF5252;">${voteMap[p.myId]||0}</td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
             });
 
-            const males = data.filter(p => p.gender === 'male');
-            const females = data.filter(p => p.gender === 'female');
+            const males = currentData.filter(p => p.gender === 'male');
+            const females = currentData.filter(p => p.gender === 'female');
             const summary = document.getElementById('match-summary');
             summary.innerHTML = "";
             let couples = 0; let matchedIds = new Set();
@@ -80,21 +115,70 @@
                 females.forEach(f => {
                     if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
                         couples++; matchedIds.add(m.myId); matchedIds.add(f.myId);
-                        summary.innerHTML += `<div>❤️ ${m.myId}(${m.phone}) & ${f.myId}(${f.phone})</div>`;
+                        summary.innerHTML += `<div>💘 <b>${m.myId}(${m.realName})</b> ↔ <b>${f.myId}(${f.realName})</b></div>`;
                     }
                 });
             });
-
             document.getElementById('stat-couples').innerText = `${couples}쌍`;
-            document.getElementById('stat-total').innerText = data.length;
+            document.getElementById('stat-total').innerText = `${currentData.length}명`;
             document.getElementById('stat-gender').innerText = `${males.length} / ${females.length}`;
-            document.getElementById('stat-rate').innerText = `${data.length>0?Math.round((matchedIds.size/data.length)*100):0}%`;
+            document.getElementById('stat-rate').innerText = `${currentData.length>0?Math.round((matchedIds.size/currentData.length)*100):0}%`;
         }
 
-        updateDashboard();
+        // [기능 복구] 결과 공개 전 최종 확인
+        document.getElementById('open-btn').onclick = async () => {
+            if(!confirm("진짜 결과를 공개하시겠습니까? 공개 시 참여자들의 추가 정보 제출이 차단됩니다.")) return;
+            await setDoc(doc(db, "settings", "matching_status"), { is_open: true });
+            alert("결과가 공개되었습니다.");
+            updateDashboard();
+        };
+
+        // [기능 복구] 기수 초기화 시 자동 백업 아카이빙
+        document.getElementById('delete-btn').onclick = async () => {
+            if(currentData.length === 0) return alert("초기화할 데이터가 없습니다.");
+            if(!confirm("⚠️ 모든 데이터를 삭제하고 초기화하시겠습니까? 삭제 전 자동으로 'archive' 컬렉션에 저장됩니다.")) return;
+            
+            const batchName = prompt("저장할 기수 이름을 입력하세요 (예: 유연 14기)");
+            if(!batchName) return alert("기수 이름을 입력해야 안전하게 백업 및 초기화가 가능합니다.");
+
+            try {
+                const batch = writeBatch(db);
+                // 1. 아카이브 컬렉션으로 복사
+                currentData.forEach(p => {
+                    const archiveRef = doc(db, "archive", `${batchName}_${p.myId}_${p.phone}`);
+                    batch.set(archiveRef, { ...p, batchName: batchName, archivedAt: new Date() });
+                });
+                // 2. 참여자 컬렉션에서 삭제
+                currentData.forEach(p => {
+                    const participantRef = doc(db, "participants", p.id);
+                    batch.delete(participantRef);
+                });
+
+                await batch.commit();
+                alert(`[${batchName}] 백업 및 초기화 완료!`);
+                updateDashboard();
+            } catch(e) { alert("에러 발생: " + e.message); }
+        };
+
+        // CSV 다운로드 (기존 유지)
+        document.getElementById('download-btn').onclick = () => {
+            let csv = "\uFEFF번호,성별,이름,연락처,선택1,선택2,후기\n";
+            currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.phone},${p.pickId1||''},${p.pickId2||''},"${(p.review||'').replace(/"/g, '""')}"\n`);
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `스튜디오유연_백업_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
+        document.getElementById('close-btn').onclick = async () => {
+            if(confirm("결과를 차단하고 접수를 다시 받으시겠습니까?")) {
+                await setDoc(doc(db, "settings", "matching_status"), { is_open: false });
+                alert("결과가 차단되었습니다.");
+                updateDashboard();
+            }
+        };
         document.getElementById('refresh-btn').onclick = updateDashboard;
-        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("공개 완료"); };
-        document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 완료"); };
+        updateDashboard();
     </script>
 </body>
 </html>
