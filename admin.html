@@ -24,14 +24,14 @@
     <div class="admin-container">
         <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Admin</h1>
         <div class="bento-grid">
-            <div class="bento-card card-large"><h4>실시간 매칭 💖</h4><p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p><div id="match-summary" style="font-size: 13px; color: #666; text-align: left; margin-top:15px;"></div></div>
+            <div class="bento-card card-large"><h4>커플 현황 💖</h4><p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p><div id="match-summary" style="font-size: 13px; color: #666; text-align: left; margin-top:15px;"></div></div>
             <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;"><h4>매칭률 📊</h4><p id="stat-rate" class="main-val">0%</p></div>
             <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>총 참가자</h4><p id="stat-total" class="main-val">0명</p></div>
             <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
         </div>
         <div class="control-panel">
-            <button id="open-btn" class="btn-purple">🔓 결과 공개 (마감)</button>
-            <button id="close-btn" class="btn-dark">🔒 결과 차단 (재개)</button>
+            <button id="open-btn" class="btn-purple">🔓 결과 공개 (접수 마감)</button>
+            <button id="close-btn" class="btn-dark">🔒 결과 차단 (접수 재개)</button>
             <button id="download-btn" class="btn-orange">📥 CSV 백업 다운로드</button>
             <button id="delete-btn" class="btn-red">⚠️ 백업 후 초기화</button>
             <button id="refresh-btn" class="btn-green">🔄 데이터 새로고침</button>
@@ -74,12 +74,13 @@
         document.getElementById('download-btn').onclick = () => {
             let csv = "\uFEFF번호,성별,이름,연락처,픽1,픽2,후기\n";
             currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.phone},${p.pickId1},${p.pickId2},"${(p.review||'').replace(/"/g, '""')}"\n`);
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
             link.download = `스튜디오유연_백업_${new Date().toLocaleDateString()}.csv`; link.click();
         };
 
         document.getElementById('delete-btn').onclick = async () => {
-            if(!confirm("⚠️ 백업 후 초기화하시겠습니까?")) return;
+            if(!confirm("⚠️ 모든 데이터를 삭제하시겠습니까? 삭제 전 자동으로 'archive'에 저장됩니다.")) return;
             const batchName = prompt("저장할 기수 이름을 입력하세요 (예: 유연 14기)");
             if(!batchName) return alert("기수 이름 필수!");
             try {
@@ -90,11 +91,11 @@
                     batch.delete(doc(db, "participants", p.id));
                 });
                 await batch.commit(); alert(`${batchName} 완료!`); updateDashboard();
-            } catch(e) { alert("오류!"); }
+            } catch(e) { alert("오류 발생!"); }
         };
 
-        document.getElementById('open-btn').onclick = async () => { if(confirm("진짜 공개하시겠습니까? 접수가 마감됩니다.")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("마감 완료"); updateDashboard(); } };
-        document.getElementById('close-btn').onclick = async () => { if(confirm("차단하시겠습니까? 접수가 다시 열립니다.")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 완료"); updateDashboard(); } };
+        document.getElementById('open-btn').onclick = async () => { if(confirm("진짜 결과를 공개하시겠습니까? 접수가 즉시 마감됩니다.")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("공개 완료 (접수 마감)"); updateDashboard(); } };
+        document.getElementById('close-btn').onclick = async () => { if(confirm("접수를 다시 받으시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 완료 (접수 재개)"); updateDashboard(); } };
         document.getElementById('refresh-btn').onclick = updateDashboard;
         updateDashboard();
     </script>
