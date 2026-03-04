@@ -3,87 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Yuyeon Admin | 대시보드</title>
+    <title>Yuyeon Admin | 대시보드</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; padding: 20px; margin: 0; }
-        .admin-container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 6px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; }
+        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; padding: 20px; text-align: center; }
+        .admin-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        button { padding: 20px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
-        #status-display { font-weight: bold; font-size: 18px; margin: 20px 0; }
+        button { padding: 20px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Studio Yuyeon Admin</h1>
-        <p id="status-display">데이터 연결 확인 중...</p>
+        <h1>Studio Yuyeon Admin</h1>
+        <p id="status-display" style="font-weight: bold; font-size: 18px;">상태 확인 중...</p>
         <div class="btn-group">
             <button id="open-btn" style="background:#9b59b6;">🔓 결과 공개 (접수 마감)</button>
             <button id="close-btn" style="background:#34495e;">🔒 결과 차단 (접수 재개)</button>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
-        // [필독] 이 설정값이 누락되면 버튼이 작동하지 않습니다.
-        const firebaseConfig = {
-            apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
-            authDomain: "my-dating-service.firebaseapp.com",
-            projectId: "my-dating-service",
-            storageBucket: "my-dating-service.firebasestorage.app",
-            messagingSenderId: "231488184905",
-            appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
-        };
-
+        const firebaseConfig = { /* 위와 동일한 설정 사용 */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const statusText = document.getElementById('status-display');
 
-        // 실시간 상태 감시: 파이어베이스의 값을 실시간으로 읽어와서 화면에 표시합니다.
-        onSnapshot(doc(db, "settings", "matching_status"), (snapshot) => {
-            if (snapshot.exists()) {
-                const isOpen = snapshot.data().is_open;
-                if (isOpen === true) {
-                    statusText.innerText = "🔴 현재 상태: 결과 공개 (참여자 접수 불가)";
-                    statusText.style.color = "red";
-                } else {
-                    statusText.innerText = "🟢 현재 상태: 접수 중 (참여자 제출 가능)";
-                    statusText.style.color = "green";
-                }
+        // 실시간으로 현재 상태를 화면에 표시합니다.
+        onSnapshot(doc(db, "settings", "matching_status"), (doc) => {
+            if (doc.exists() && doc.data().is_open === true) {
+                statusText.innerText = "🔴 현재 상태: 접수 마감 (결과 공개 중)";
+                statusText.style.color = "red";
             } else {
-                statusText.innerText = "⚠️ 설정 문서가 없습니다. 버튼을 눌러 생성하세요.";
+                statusText.innerText = "🟢 현재 상태: 접수 중";
+                statusText.style.color = "green";
             }
-        }, (error) => {
-            console.error("감시 오류:", error);
-            statusText.innerText = "❌ 데이터 읽기 권한이 없습니다. (Rules 확인 필요)";
         });
 
-        // 결과 공개 버튼 (is_open: true 저장)
         document.getElementById('open-btn').onclick = async () => {
-            if(!confirm("결과를 공개하고 접수를 마감하시겠습니까?")) return;
-            try {
-                await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true });
-                alert("성공: 결과가 공개되었습니다!");
-            } catch (e) {
-                console.error("저장 오류:", e);
-                alert("실패: " + e.message + "\n(Firestore Rules를 확인해보세요)");
-            }
+            if(!confirm("마감하시겠습니까?")) return;
+            // 반드시 불리언 값인 true를 저장합니다.
+            await setDoc(doc(db, "settings", "matching_status"), { is_open: true });
+            alert("접수가 마감되었습니다.");
         };
 
-        // 결과 차단 버튼 (is_open: false 저장)
         document.getElementById('close-btn').onclick = async () => {
-            if(!confirm("결과를 숨기고 접수를 다시 받으시겠습니까?")) return;
-            try {
-                await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true });
-                alert("성공: 접수가 다시 시작되었습니다!");
-            } catch (e) {
-                console.error("저장 오류:", e);
-                alert("실패: " + e.message);
-            }
+            await setDoc(doc(db, "settings", "matching_status"), { is_open: false });
+            alert("접수가 재개되었습니다.");
         };
     </script>
 </body>
